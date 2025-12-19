@@ -20,7 +20,7 @@
         margin: 0;
         height: 100%;
         overflow: hidden;
-        background: #000;
+        background: transparent;
       }
       #tapToStart {
         position: fixed;
@@ -66,7 +66,7 @@
     <a-scene
       mindar-image="imageTargetSrc: ./targets.mind; uiScanning: yes; uiLoading: yes; uiError: yes;"
       color-space="sRGB"
-      renderer="colorManagement: true, physicallyCorrectLights: true"
+      renderer="colorManagement: true, physicallyCorrectLights: true, alpha: true"
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: false"
       embedded
@@ -95,8 +95,8 @@
           id="videoPlane"
           position="0 0 0"
           rotation="0 0 0"
-          width="1"
-          height="0.6667"
+          width="10"
+          height="6.667"
           material="shader: flat; src: #vid; transparent: true; opacity: 1"
         ></a-plane>
       </a-entity>
