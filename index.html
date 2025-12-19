@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>Happy Christmas</title>
+
+    <!-- A-Frame -->
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+
+    <!-- MindAR (A-Frame build) -->
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #000;
+      }
+      #tapToStart {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: rgba(0, 0, 0, 0.65);
+        color: #fff;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+        text-align: center;
+        padding: 24px;
+        z-index: 9999;
+      }
+      #tapToStart button {
+        font-size: 18px;
+        padding: 14px 18px;
+        border-radius: 12px;
+        border: 0;
+        cursor: pointer;
+      }
+      #hint {
+        margin-top: 14px;
+        opacity: 0.85;
+        font-size: 14px;
+        line-height: 1.4;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- iOS/Chrome often require a user gesture before video w/ audio can play.
+         This overlay provides that "tap" gesture. -->
+    <div id="tapToStart">
+      <div>
+        <button id="startBtn">Tap to enable video</button>
+        <div id="hint">
+          Then point your camera at the photo.<br />
+          (You can unmute using the video controls if needed.)
+        </div>
+      </div>
+    </div>
+
+    <a-scene
+      mindar-image="imageTargetSrc: ./targets.mind; uiScanning: yes; uiLoading: yes; uiError: yes;"
+      color-space="sRGB"
+      renderer="colorManagement: true, physicallyCorrectLights: true"
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false"
+      embedded
+    >
+      <a-assets>
+        <!-- playsinline is critical on iOS -->
+        <video
+          id="vid"
+          src="./video.mp4"
+          preload="auto"
+          loop
+          muted
+          playsinline
+          webkit-playsinline
+          crossorigin="anonymous"
+        ></video>
+      </a-assets>
+
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+      <!-- Target index 0 because you compiled only ONE image -->
+      <a-entity id="target" mindar-image-target="targetIndex: 0">
+        <!-- This plane is the "living photo" surface.
+             Tweak width/height to match your photo/video aspect ratio. -->
+        <a-plane
+          id="videoPlane"
+          position="0 0 0"
+          rotation="0 0 0"
+          width="1"
+          height="0.6667"
+          material="shader: flat; src: #vid; transparent: true; opacity: 1"
+        ></a-plane>
+      </a-entity>
+    </a-scene>
+
+    <script>
+      const startOverlay = document.getElementById("tapToStart");
+      const startBtn = document.getElementById("startBtn");
+
+      const video = document.getElementById("vid");
+      const target = document.getElementById("target");
+
+      let userEnabledPlayback = false;
+
+      // User gesture: unlock playback on iOS
+      startBtn.addEventListener("click", async () => {
+        userEnabledPlayback = true;
+        startOverlay.style.display = "none";
+
+        // Keep muted by default for best cross-platform autoplay reliability.
+        // If you want sound immediately after tap, set video.muted = false here.
+        video.muted = true;
+
+        try {
+          await video.play();
+          video.pause();
+          video.currentTime = 0;
+        } catch (e) {
+          // Some devices still block; we’ll retry on targetFound.
+          console.log("Video unlock failed, will retry on targetFound", e);
+        }
+      });
+
+      // Play/pause based on target visibility
+      target.addEventListener("targetFound", async () => {
+        if (!userEnabledPlayback) return;
+        try {
+          await video.play();
+        } catch (e) {
+          console.log("Play failed:", e);
+        }
+      });
+
+      target.addEventListener("targetLost", () => {
+        video.pause();
+        // Optional: rewind when the photo is not visible
+        // video.currentTime = 0;
+      });
+    </script>
+  </body>
+</html>
