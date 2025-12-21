@@ -19,7 +19,27 @@
         height: 100%;
         width: 100%;
         overflow: hidden;
-        background: #000;
+        background: transparent;
+      }
+
+      a-scene {
+        width: 100vw;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1;
+      }
+
+      /* Ensure MindAR camera video is visible */
+      #arjs-video {
+        width: 100vw !important;
+        height: 100vh !important;
+        object-fit: cover;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1;
       }
 
       #tapToStart {
@@ -61,7 +81,7 @@
         display: none;
         align-items: center;
         justify-content: center;
-        background: #000;
+        background: transparent;
         z-index: 100;
       }
 
@@ -92,7 +112,8 @@
       mindar-image="imageTargetSrc: ./targets.mind;"
       color-space="sRGB"
       embedded
-      renderer="colorManagement: true, physicallyCorrectLights"
+      renderer="colorManagement: true, physicallyCorrectLights, alpha: true"
+      background="color: transparent"
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: false"
     >
