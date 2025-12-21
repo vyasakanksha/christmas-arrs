@@ -51,6 +51,29 @@
         font-size: 14px;
         line-height: 1.4;
       }
+
+      #videoOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: #000;
+        z-index: 100;
+      }
+
+      #videoOverlay.show {
+        display: flex;
+      }
+
+      #videoOverlay video {
+        width: 100vw;
+        height: 100vh;
+        object-fit: contain;
+      }
     </style>
   </head>
 
@@ -73,18 +96,6 @@
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: false"
     >
-      <a-assets>
-        <video
-          id="vid"
-          src="./video.mp4"
-          preload="auto"
-          loop
-          playsinline
-          webkit-playsinline
-          crossorigin="anonymous"
-        ></video>
-      </a-assets>
-
       <a-camera
         id="camera"
         position="0 0 0"
@@ -92,25 +103,28 @@
         wasd-controls="enabled: false"
       ></a-camera>
 
-      <a-entity mindar-image-target="targetIndex: 0">
-        <a-video
-          id="arVideo"
-          src="#vid"
-          position="0 0 0"
-          rotation="0 0 0"
-          width="1.5"
-          height="1"
-          autoplay
-          loop
-        ></a-video>
-      </a-entity>
+      <a-entity mindar-image-target="targetIndex: 0"></a-entity>
     </a-scene>
+
+    <!-- Fullscreen video overlay -->
+    <div id="videoOverlay">
+      <video
+        id="overlayVideo"
+        src="./video.mp4"
+        preload="auto"
+        loop
+        playsinline
+        webkit-playsinline
+        crossorigin="anonymous"
+      ></video>
+    </div>
 
     <script>
       const startOverlay = document.getElementById("tapToStart");
       const startBtn = document.getElementById("startBtn");
       const arScene = document.getElementById("arScene");
-      const video = document.getElementById("vid");
+      const videoOverlay = document.getElementById("videoOverlay");
+      const overlayVideo = document.getElementById("overlayVideo");
 
       let userEnabledPlayback = false;
       let arSystem = null;
@@ -132,55 +146,31 @@
         arScene.addEventListener("targetFound", (event) => {
           console.log("Target found!");
 
-          // Ensure the video asset is unmuted and playing
-          if (video) {
-            video.muted = false;
-            video.play().catch((e) => {
+          // Show video overlay
+          videoOverlay.classList.add("show");
+
+          // Unmute and play video with audio
+          if (overlayVideo) {
+            overlayVideo.muted = false;
+            overlayVideo.currentTime = 0; // Reset to start
+            overlayVideo.play().catch((e) => {
               console.log("Video play failed:", e);
             });
           }
-
-          // Also try to access the video through the a-video component
-          setTimeout(() => {
-            const arVideoEl = document.getElementById("arVideo");
-            if (arVideoEl) {
-              // A-Frame stores the video element in the material component
-              const material = arVideoEl.components?.material;
-              if (material && material.material && material.material.map) {
-                const videoTexture = material.material.map;
-                if (
-                  videoTexture.image &&
-                  videoTexture.image.tagName === "VIDEO"
-                ) {
-                  const videoEl = videoTexture.image;
-                  videoEl.muted = false;
-                  videoEl.play().catch((e) => {
-                    console.log("AR video element play failed:", e);
-                  });
-                }
-              }
-            }
-          }, 100);
         });
 
         // Listen for target lost event
         arScene.addEventListener("targetLost", () => {
           console.log("Target lost!");
-          // Pause video when target is lost
-          if (video) {
-            video.pause();
+          // Hide video overlay and pause video
+          videoOverlay.classList.remove("show");
+          if (overlayVideo) {
+            overlayVideo.pause();
           }
         });
 
         // Start AR
         await arSystem.start();
-      });
-
-      // Ensure video is unmuted when user enables playback
-      arScene.addEventListener("loaded", () => {
-        if (userEnabledPlayback && video) {
-          video.muted = false;
-        }
       });
     </script>
   </body>
