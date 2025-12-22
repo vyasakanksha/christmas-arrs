@@ -153,7 +153,18 @@
         wasd-controls="enabled: false"
       ></a-camera>
 
-      <a-entity mindar-image-target="targetIndex: 0"></a-entity>
+      <a-entity mindar-image-target="targetIndex: 0">
+        <a-video
+          id="arVideo"
+          src="#vid"
+          position="0 0 0"
+          rotation="0 0 0"
+          width="1.5"
+          height="1"
+          autoplay
+          loop
+        ></a-video>
+      </a-entity>
     </a-scene>
 
     <!-- Fullscreen video overlay -->
@@ -190,30 +201,6 @@
         // Wait for AR system to be ready and ensure camera feed is visible
         arScene.addEventListener("arReady", () => {
           console.log("AR system ready");
-
-          // Ensure camera video is visible - check multiple times as it might be created asynchronously
-          const checkVideo = setInterval(() => {
-            const arVideo =
-              document.getElementById("arjs-video") ||
-              document.querySelector("a-scene video") ||
-              document.querySelector('video[id*="arjs"]') ||
-              document.querySelector('video[id*="mindar"]');
-
-            if (arVideo) {
-              arVideo.style.display = "block";
-              arVideo.style.visibility = "visible";
-              arVideo.style.opacity = "1";
-              arVideo.style.width = "100vw";
-              arVideo.style.height = "100vh";
-              arVideo.style.objectFit = "cover";
-              arVideo.style.position = "fixed";
-              arVideo.style.top = "0";
-              arVideo.style.left = "0";
-              arVideo.style.zIndex = "1";
-              clearInterval(checkVideo);
-              console.log("Camera video found and made visible");
-            }
-          }, 50);
 
           // Stop checking after 2 seconds
           setTimeout(() => clearInterval(checkVideo), 2000);
