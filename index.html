@@ -191,6 +191,7 @@
 
       let userEnabledPlayback = false;
       let arSystem = null;
+      let videoStarted = false;
 
       // User gesture: unlock playback on iOS
       startBtn.addEventListener("click", async () => {
@@ -215,26 +216,29 @@
           // Show video overlay fullscreen
           videoOverlay.classList.add("show");
 
-          // Unmute and play video with audio
-          if (overlayVideo) {
+          // Unmute and play video with audio (only if not already started)
+          if (overlayVideo && !videoStarted) {
             overlayVideo.muted = false;
             overlayVideo.currentTime = 0; // Reset to start
             overlayVideo.play().catch((e) => {
               console.log("Video play failed:", e);
             });
+            videoStarted = true;
+          } else if (overlayVideo && videoStarted) {
+            // Video already started, just ensure it's playing
+            if (overlayVideo.paused) {
+              overlayVideo.play().catch((e) => {
+                console.log("Video play failed:", e);
+              });
+            }
           }
         });
 
-        // Listen for target lost event
+        // Listen for target lost event - but keep video playing
         arScene.addEventListener("targetLost", () => {
           console.log("Target lost!");
-          // Show AR scene again
-          arScene.style.display = "block";
-          // Hide video overlay and pause video
-          videoOverlay.classList.remove("show");
-          if (overlayVideo) {
-            overlayVideo.pause();
-          }
+          // Keep video playing - don't pause or hide
+          // Video will continue playing in the overlay
         });
 
         // Start AR
