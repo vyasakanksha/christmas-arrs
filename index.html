@@ -113,7 +113,7 @@
       }
 
       #videoOverlay.show {
-        display: flex;
+        display: block;
       }
 
       #videoOverlay video {
@@ -123,6 +123,7 @@
         position: fixed !important;
         top: 0 !important;
         left: 0 !important;
+        z-index: 1001 !important;
       }
     </style>
   </head>
@@ -146,6 +147,18 @@
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: false"
     >
+      <a-assets>
+        <video
+          id="vid"
+          src="./video.mp4"
+          preload="auto"
+          loop
+          playsinline
+          webkit-playsinline
+          crossorigin="anonymous"
+        ></video>
+      </a-assets>
+
       <a-camera
         id="camera"
         position="0 0 0"
@@ -153,18 +166,7 @@
         wasd-controls="enabled: false"
       ></a-camera>
 
-      <a-entity mindar-image-target="targetIndex: 0">
-        <a-video
-          id="arVideo"
-          src="#vid"
-          position="0 0 0"
-          rotation="0 0 0"
-          width="1.5"
-          height="1"
-          autoplay
-          loop
-        ></a-video>
-      </a-entity>
+      <a-entity mindar-image-target="targetIndex: 0"></a-entity>
     </a-scene>
 
     <!-- Fullscreen video overlay -->
@@ -198,19 +200,19 @@
         // Start AR system
         arSystem = arScene.systems["mindar-image-system"];
 
-        // Wait for AR system to be ready and ensure camera feed is visible
+        // Wait for AR system to be ready
         arScene.addEventListener("arReady", () => {
           console.log("AR system ready");
-
-          // Stop checking after 2 seconds
-          setTimeout(() => clearInterval(checkVideo), 2000);
         });
 
         // Listen for target found event
         arScene.addEventListener("targetFound", (event) => {
           console.log("Target found!");
 
-          // Show video overlay
+          // Hide AR scene
+          arScene.style.display = "none";
+
+          // Show video overlay fullscreen
           videoOverlay.classList.add("show");
 
           // Unmute and play video with audio
@@ -226,6 +228,8 @@
         // Listen for target lost event
         arScene.addEventListener("targetLost", () => {
           console.log("Target lost!");
+          // Show AR scene again
+          arScene.style.display = "block";
           // Hide video overlay and pause video
           videoOverlay.classList.remove("show");
           if (overlayVideo) {
