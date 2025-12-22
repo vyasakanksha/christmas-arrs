@@ -42,6 +42,33 @@
         z-index: 1;
       }
 
+      /* Ensure canvas is visible and transparent */
+      a-scene canvas {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        z-index: 2;
+        background: transparent !important;
+      }
+
+      /* Make sure any video element created by MindAR is visible */
+      video[id*="arjs"],
+      video[id*="mindar"],
+      a-scene video {
+        width: 100vw !important;
+        height: 100vh !important;
+        object-fit: cover !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        z-index: 1 !important;
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+      }
+
       #tapToStart {
         position: fixed;
         inset: 0;
@@ -113,7 +140,6 @@
       color-space="sRGB"
       embedded
       renderer="colorManagement: true, physicallyCorrectLights, alpha: true"
-      background="color: transparent"
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: false"
     >
@@ -158,9 +184,36 @@
         // Start AR system
         arSystem = arScene.systems["mindar-image-system"];
 
-        // Wait for AR system to be ready
+        // Wait for AR system to be ready and ensure camera feed is visible
         arScene.addEventListener("arReady", () => {
           console.log("AR system ready");
+
+          // Ensure camera video is visible - check multiple times as it might be created asynchronously
+          const checkVideo = setInterval(() => {
+            const arVideo =
+              document.getElementById("arjs-video") ||
+              document.querySelector("a-scene video") ||
+              document.querySelector('video[id*="arjs"]') ||
+              document.querySelector('video[id*="mindar"]');
+
+            if (arVideo) {
+              arVideo.style.display = "block";
+              arVideo.style.visibility = "visible";
+              arVideo.style.opacity = "1";
+              arVideo.style.width = "100vw";
+              arVideo.style.height = "100vh";
+              arVideo.style.objectFit = "cover";
+              arVideo.style.position = "fixed";
+              arVideo.style.top = "0";
+              arVideo.style.left = "0";
+              arVideo.style.zIndex = "1";
+              clearInterval(checkVideo);
+              console.log("Camera video found and made visible");
+            }
+          }, 50);
+
+          // Stop checking after 2 seconds
+          setTimeout(() => clearInterval(checkVideo), 2000);
         });
 
         // Listen for target found event
@@ -191,7 +244,12 @@
         });
 
         // Start AR
-        await arSystem.start();
+        try {
+          await arSystem.start();
+          console.log("AR system started");
+        } catch (error) {
+          console.error("Failed to start AR system:", error);
+        }
       });
     </script>
   </body>
