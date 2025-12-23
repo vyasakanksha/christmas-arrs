@@ -124,6 +124,14 @@
         object-fit: contain !important;
         position: relative !important;
         z-index: 1001 !important;
+        transform: scale(1.15);
+      }
+
+      /* Make video even bigger on mobile devices */
+      @media (max-width: 768px) {
+        #videoOverlay video {
+          transform: scale(2);
+        }
       }
     </style>
   </head>
